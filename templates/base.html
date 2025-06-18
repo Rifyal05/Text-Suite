@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Smart Text Suite{% endblock %}</title>
+    <link rel="icon" href="{{ url_for('static', filename='favicon_sparkle.svg') }}" type="image/svg+xml">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Lexend:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/navbar.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/translator.css') }}">
+    {% block head_links %}{% endblock %}
+</head>
+
+<body class="page-feature {% if session.get('sidebar_hidden') %}sidebar-hidden{% endif %}">
+
+    {% include '_navbar.html' %}
+
+    <main class="main-content-global">
+        <div class="page-container">
+            {% block content %}{% endblock %}
+        </div>
+        <div class="input-console-container">
+            <form method="POST" class="input-console-wrapper" id="mainFeatureForm">
+                {% block input_console %}{% endblock %}
+            </form>
+        </div>
+    </main>
+
+    <aside class="options-sidebar-global" id="optionsSidebar">
+        <div class="sidebar-main-toggle" id="sidebar-main-toggle" title="Toggle Opsi">
+            <i class="fas fa-chevron-right"></i>
+        </div>
+
+        <div class="sidebar-header">
+            {% block sidebar_title %}<h3>Pengaturan</h3>{% endblock %}
+        </div>
+        <div class="sidebar-content">
+            {% block sidebar_options %}{% endblock %}
+            <div class="form-group token-counter-container">
+                <label>Penggunaan Token</label>
+                <div class="token-display" id="tokenDisplay">
+                    <span id="tokenCount">0</span> / 50,000
+                </div>
+            </div>
+        </div>
+    </aside>
+    
+    <script src="{{ url_for('static', filename='js/main.js') }}" defer></script>
+    {% block scripts %}{% endblock %}
+
+</body>
+</html>

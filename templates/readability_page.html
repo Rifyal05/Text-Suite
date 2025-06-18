@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+
+{% block title %}Keterbacaan AI | Shinny Suite{% endblock %}
+
+{% block head_links %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/readability.css') }}">
+{% endblock %}
+
+{% block body_attributes %}class="page-feature sidebar-active"{% endblock %}
+{% block page_title %}{% endblock %}
+
+{% block content %}
+    {# Form tidak lagi membungkus block ini #}
+    <div id="readabilityResultsContainer" class="results-container-main" data-action="{{ url_for('readability_bp.process_readability') }}">
+        <div class="initial-message" style="text-align: center; color: var(--secondary-text); padding-top: 8rem;">
+            <i class="fas fa-book-reader" style="font-size: 4em; margin-bottom: 1rem; color: var(--accent-mid);"></i>
+            <h2>Hasil Analisis Akan Muncul di Sini</h2>
+            <p>Isi form di bawah dan klik kirim untuk memulai.</p>
+        </div>
+    </div>
+{% endblock %}
+
+{% block input_console %}
+    {# ⭐ FORM SEKARANG HANYA MEMBUNGKUS BAGIAN INI ⭐ #}
+    <form id="mainFeatureForm">
+        <textarea name="text_to_analyze" id="mainTextarea" rows="1" placeholder="Masukkan teks untuk dianalisis... (Ctrl+Enter untuk kirim)">{{ form_data.text_to_analyze }}</textarea>
+        <button type="submit" class="btn-submit-console" id="submitBtn" aria-label="Analisis Teks">
+            <i class="fa-solid fa-arrow-up"></i>
+        </button>
+    </form>
+{% endblock %}
+
+{% block sidebar_title %}
+    <h3><i class="fas fa-book"></i> Opsi Analisis</h3>
+{% endblock %}
+
+{% block sidebar_options %}
+    <div class="form-group">
+        <label for="analysis_method">Metode Analisis:</label>
+        {# ⭐ INPUT INI TERHUBUNG KE FORM MENGGUNAKAN ATRIBUT 'form' ⭐ #}
+        <select form="mainFeatureForm" name="analysis_method" id="analysis_method">
+            <option value="gemini" {% if not gemini_ready %}disabled{% endif %}>✨ AI (Konteks & Saran) {% if not gemini_ready %}(Tdk Tersedia){% endif %}</option>
+            <option value="classic">⚡ Klasik (Statistik Cepat)</option>
+        </select>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="{{ url_for('static', filename='js/readability.js') }}"></script>
+{% endblock %}

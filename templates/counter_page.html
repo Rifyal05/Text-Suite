@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+
+{% block page_title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="feature-form-container">
+    <form method="POST" class="feature-form">
+        <div class="form-group">
+            <label for="text_to_count">Masukkan Teksmu di Sini, Kakak:</label>
+            <textarea name="text_to_count" id="text_to_count" rows="12" placeholder="Ketik atau tempel teks yang ingin di hitung statistiknya...">{{ form_data.text_to_count }}</textarea>
+        </div>
+        
+        <div class="form-group">
+            <button type="submit" class="btn btn-primary">Hitung Statistik Teks!</button>
+        </div>
+    </form>
+</div>
+
+{% if stats_results %}
+<div class="results-output stats-results-container"> {# Tambahkan class khusus jika perlu styling beda #}
+    <h2><span class="res-icon">✨</span> Statistik Teks :</h2>
+    <div class="stats-grid">
+        <div class="stat-item">
+            <span class="stat-label">Jumlah Karakter (dengan spasi):</span>
+            <span class="stat-value">{{ stats_results.char_count_with_spaces }}</span>
+        </div>
+        <div class="stat-item">
+            <span class="stat-label">Jumlah Karakter (tanpa spasi):</span>
+            <span class="stat-value">{{ stats_results.char_count_without_spaces }}</span>
+        </div>
+        <div class="stat-item">
+            <span class="stat-label">Jumlah Kata:</span>
+            <span class="stat-value">{{ stats_results.word_count }}</span>
+        </div>
+        <div class="stat-item">
+            <span class="stat-label">Jumlah Kalimat:</span>
+            <span class="stat-value">{{ stats_results.sentence_count }}</span>
+        </div>
+        <div class="stat-item">
+            <span class="stat-label">Jumlah Paragraf:</span>
+            <span class="stat-value">{{ stats_results.paragraph_count }}</span>
+        </div>
+        <div class="stat-item">
+            <span class="stat-label">Rata-rata Panjang Kata:</span>
+            <span class="stat-value">{{ stats_results.avg_word_length }} karakter</span>
+        </div>
+        <div class="stat-item">
+            <span class="stat-label">Rata-rata Kata per Kalimat:</span>
+            <span class="stat-value">{{ stats_results.avg_sentence_length }} kata</span>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+
+{% endblock %}

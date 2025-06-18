@@ -1,0 +1,31 @@
+<head>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/navbar.css') }}">
+</head>
+<nav class="navbar">
+    <div class="nav-container">
+        <div style="display: flex; align-items: center; gap: 1rem;">
+            <a class="nav-logo" href="{{ url_for('home_bp.home') }}">SMART TEXT ✨</a>
+            <button class="nav-burger-btn" id="navBurgerBtn" aria-label="Toggle navigation" aria-expanded="false">
+                <i class="fa-solid fa-bars" id="burgerIcon"></i>
+            </button>
+        </div>
+        <div class="nav-menu-wrapper" id="navMenuWrapper">
+            <ul class="nav-menu">
+                <li class="nav-item"><a href="{{ url_for('home_bp.home') }}"
+                        class="nav-link {% if request.blueprint == 'home_bp' %}active{% endif %}">BERANDA</a></li>
+                <li class="nav-item"><a href="{{ url_for('summarizer_bp.summarize_page_get') }}"
+                        class="nav-link {% if request.blueprint == 'summarizer_bp' %}active{% endif %}">PERINGKAS</a>
+                </li>
+                <li class="nav-item"><a href="{{ url_for('translator_bp.translate_page_get') }}"
+                        class="nav-link {% if request.blueprint == 'translator_bp' %}active{% endif %}">PENERJEMAH</a>
+                </li>
+                <li class="nav-item"><a href="{{ url_for('readability_bp.readability_page_get') }}"
+                        class="nav-link {% if request.blueprint == 'readability_bp' %}active{% endif %}">ANALISIS</a>
+                </li>
+                <!-- <li class="nav-item"><a href="{{ url_for('proofreader_bp.proofread_page') }}"
+                        class="nav-link {% if request.blueprint == 'proofreader_bp' %}active{% endif %}">KOREKSI</a>
+                </li> -->
+            </ul>
+        </div>
+    </div>
+</nav>

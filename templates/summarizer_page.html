@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+
+{% block title %}Peringkas & Kata Kunci | Smart Text Suite{% endblock %}
+
+{% block head_links %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/summarizer.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/eval.css') }}">
+{% endblock %}
+
+{% block content %}
+    <div id="resultsContainer" class="results-container-main">
+        <div class="initial-message" style="text-align: center; color: var(--secondary-text); padding-top: 8rem;">
+            <i class="fa-solid fa-wand-magic-sparkles" style="font-size: 4em; margin-bottom: 1rem; color: var(--accent-mid);"></i>
+            <h2>Hasil ringkasan dan kata kunci akan muncul di sini</h2>
+            <p>Isi form di bawah dan klik kirim atau tekan Ctrl+Enter.</p>
+        </div>
+    </div>
+{% endblock %}
+
+{% block input_console %}
+    <textarea name="original_text" id="mainTextarea" rows="1" placeholder="Masukkan teks panjangmu di sini...">{{ form_data.original_text }}</textarea>
+    <button type="submit" form="mainFeatureForm" class="btn-submit-console" id="submitBtn" aria-label="Proses Teks">
+        <i class="fa-solid fa-arrow-up"></i>
+    </button>
+{% endblock %}
+
+{% block sidebar_title %}
+    <h3><i class="fas fa-cogs"></i> Opsi Peringkas</h3>
+{% endblock %}
+
+{% block sidebar_options %}
+<form id="mainFeatureForm" action="{{ url_for('summarizer_bp.summarize_page_post') }}" method="POST">
+    <div class="form-group">
+        <label for="summarizer_algo">Model Utama:</label>
+        <select name="summarizer_algo" id="summarizer_algo">
+            <option value="gemini" {% if form_data.summarizer_algo == 'gemini' %}selected{% endif %} {% if not gemini_ready %}disabled{% endif %}>
+                ✨ Gemini 2.5 Flash {% if not gemini_ready %}(Tdk Tersedia){% endif %}
+            </option>
+            <option value="learnlm" {% if form_data.summarizer_algo == 'learnlm' %}selected{% endif %} {% if not gemini_ready %}disabled{% endif %}>
+                ✨ Gemini 2.0 Flash {% if not gemini_ready %}(Tdk Tersedia){% endif %}
+            </option>
+            <option value="gpt" {% if form_data.summarizer_algo == 'gpt' %}selected{% endif %} {% if not openai_ready %}disabled{% endif %}>
+                ✨ OpenAI GPT-4o Mini {% if not openai_ready %}(Tdk Tersedia){% endif %}
+            </option>
+            <option value="gpt-4o-nano" {% if form_data.summarizer_algo == 'gpt-4o-nano' %}selected{% endif %} {% if not openai_ready %}disabled{% endif %}>
+                ✨ OpenAI GPT-4o Nano {% if not openai_ready %}(Tdk Tersedia){% endif %}
+            </option>
+            <option value="textrank" {% if form_data.summarizer_algo == 'textrank' %}selected{% endif %}>TextRank (Klasik)</option>
+            <option value="tfidf" {% if form_data.summarizer_algo == 'tfidf' %}selected{% endif %}>TF-IDF (Klasik)</option>
+        </select>
+    </div>
+
+    <div class="form-group">
+        <label for="comparison_algo">Model Pembanding (Opsional):</label>
+        <select name="comparison_algo" id="comparison_algo">
+            <option value="none" selected>-- Tidak Ada --</option>
+            <option value="gemini" {% if not gemini_ready %}disabled{% endif %}>
+                ✨ Gemini 2.5 Flash {% if not gemini_ready %}(Tdk Tersedia){% endif %}
+            </option>
+            <option value="learnlm" {% if not gemini_ready %}disabled{% endif %}>
+                ✨ Gemini 2.0 Flash {% if not gemini_ready %}(Tdk Tersedia){% endif %}
+            </option>
+            <option value="gpt" {% if not openai_ready %}disabled{% endif %}>
+                ✨ OpenAI GPT-4o Mini {% if not openai_ready %}(Tdk Tersedia){% endif %}
+            </option>
+            <option value="gpt-4o-nano" {% if not openai_ready %}disabled{% endif %}>
+                ✨ OpenAI GPT-4o Nano {% if not openai_ready %}(Tdk Tersedia){% endif %}
+            </option>
+            <option value="textrank">TextRank (Klasik)</option>
+            <option value="tfidf">TF-IDF (Klasik)</option>
+        </select>
+    </div>
+
+    <div class="form-group">
+        <label for="num_sentences_summary">Jumlah Kalimat Ringkasan:</label>
+        <input type="number" id="num_sentences_summary" name="num_sentences_summary" min="1" max="35" value="{{ form_data.num_sentences_summary | default(3) }}">
+    </div>
+    <div class="form-group">
+        <label for="max_keywords_summary">Maks. Kata Kunci:</label>
+        <input type="number" id="max_keywords_summary" name="max_keywords_summary" min="3" max="20" value="{{ form_data.max_keywords_summary | default(10) }}">
+    </div>
+    <div class="form-group">
+        <label for="lang_summarizer">Bahasa Teks:</label>
+        <select name="lang_summarizer" id="lang_summarizer">
+        </select>
+    </div>
+</form>
+{% endblock %}
+
+{% block scripts %}
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const sidebar = document.getElementById('optionsSidebar'); 
+            if (sidebar) {
+                const newWidth = '350px';
+                sidebar.style.width = newWidth;
+                sidebar.style.flexBasis = newWidth;
+                sidebar.style.minWidth = newWidth;
+            }
+        });
+    </script>
+    
+    <script>
+        const URL_TO_WORKER_JS = "{{ url_for('static', filename='js/render_worker.js') }}";
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="{{ url_for('static', filename='js/eval.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/summarizer_stream.js') }}"></script>
+{% endblock %}
