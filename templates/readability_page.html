@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Keterbacaan AI | Shinny Suite{% endblock %}
+{% block title %}Keterbacaan AI | Smart Text{% endblock %}
 
 {% block head_links %}
     <link rel="stylesheet" href="{{ url_for('static', filename='css/readability.css') }}">
@@ -21,7 +21,6 @@
 {% endblock %}
 
 {% block input_console %}
-    {# ⭐ FORM SEKARANG HANYA MEMBUNGKUS BAGIAN INI ⭐ #}
     <form id="mainFeatureForm">
         <textarea name="text_to_analyze" id="mainTextarea" rows="1" placeholder="Masukkan teks untuk dianalisis... (Ctrl+Enter untuk kirim)">{{ form_data.text_to_analyze }}</textarea>
         <button type="submit" class="btn-submit-console" id="submitBtn" aria-label="Analisis Teks">

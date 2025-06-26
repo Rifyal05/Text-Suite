@@ -1,39 +1,54 @@
 {% extends "base.html" %}
 
-{% block page_title %}{{ title }}{% endblock %}
+{% block title %}Koreksi Teks AI | Smart Text Suite{% endblock %}
+
+{% block head_links %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/proofreader.css') }}">
+{% endblock %}
+
+{% block body_attributes %}class="page-feature"{% endblock %}
 
 {% block content %}
-<div class="feature-form-container">
-    <form method="POST" class="feature-form">
-        <div class="form-group">
-            <label for="text_to_proofread">Masukkan Teks yang Ingin Diperbaiki:</label>
-            <textarea name="text_to_proofread" id="text_to_proofread" rows="12" placeholder="Ketik atau tempel teks yang banyak typo atau salah grammar di sini...">{{ form_data.text_to_proofread }}</textarea>
-        </div>
-        
-        <div class="form-group">
-            {% if gemini_ready %}
-                <button type="submit" class="btn btn-primary">Perbaiki Teks dengan AI!</button>
-            {% else %}
-                <button type="submit" class="btn btn-primary" disabled>Layanan AI Tidak Tersedia</button>
-                <p class="error-text" style="margin-top: 1rem;">Fitur ini memerlukan koneksi ke Gemini AI. Mohon periksa konfigurasi API Key.</p>
-            {% endif %}
-        </div>
-    </form>
+<div id="resultsContainer" class="results-container-main">
+    <div class="initial-message" style="text-align: center; color: var(--secondary-text); padding-top: 8rem;" >
+        <i class="fa-solid fa-file-pen" style="font-size: 4em; margin-bottom: 1rem; color: var(--accent-mid);"></i>
+        <h2>Hasil koreksi dan daftar perubahan akan muncul di sini</h2>
+        <p>Masukkan teks di bawah, pilih gaya, lalu tekan Ctrl+Enter.</p>
+    </div>
 </div>
+{% endblock %}
 
-{% if results.error_message %}
-    {% if results.error_message.startswith('STATUS_ERROR:') %}
-        <div class="error-text">{{ results.error_message | replace('STATUS_ERROR:', '') }}</div>
-    {% elif results.error_message.startswith('STATUS_INFO:') %}
-        <div class="info-text">{{ results.error_message | replace('STATUS_INFO:', '') }}</div>
-    {% endif %}
-{% endif %}
+{% block input_console %}
+    <textarea name="text_to_proofread" id="mainTextarea" rows="1" placeholder="Masukkan teks yang ingin dikoreksi...">{{ form_data.text_to_proofread }}</textarea>
+    <button type="submit" form="mainFeatureForm" class="btn-submit-console" id="submitBtn" aria-label="Koreksi Teks">
+        <i class="fa-solid fa-arrow-up"></i>
+    </button>
+{% endblock %}
 
-{% if results.corrected_text %}
-<div class="results-output">
-    <h2><span class="res-icon">✨</span> Teks yang Sudah Diperbaiki oleh AI:</h2>
-    <pre style="white-space: pre-wrap; word-wrap: break-word; font-family: inherit; font-size: inherit;">{{ results.corrected_text }}</pre>
-</div>
-{% endif %}
+{% block sidebar_title %}
+    <h3><i class="fas fa-cogs"></i> Opsi Koreksi</h3>
+{% endblock %}
 
+{% block sidebar_options %}
+<form id="mainFeatureForm" action="{{ url_for('proofreader_bp.proofread_page_post') }}" method="POST">
+    <div class="form-group">
+        <label for="correction_style">Gaya Koreksi:</label>
+        <select name="correction_style" id="correction_style">
+            <option value="Standar" {% if form_data.correction_style == 'Standar' %}selected{% endif %}>
+                Standar (Perbaikan Umum)
+            </option>
+            <option value="Formal" {% if form_data.correction_style == 'Formal' %}selected{% endif %}>
+                Formal (Bisnis/Akademik)
+            </option>
+            <option value="Sederhana" {% if form_data.correction_style == 'Sederhana' %}selected{% endif %}>
+                Disederhanakan
+            </option>
+        </select>
+        <small class="form-text-muted">Pilih seberapa intensif AI harus mengubah teks Anda.</small>
+    </div>
+</form>
+{% endblock %}
+
+{% block scripts %}
+    <script src="{{ url_for('static', filename='js/proofreader.js') }}"></script>
 {% endblock %}

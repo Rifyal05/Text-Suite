@@ -19,12 +19,15 @@
                 <li class="nav-item"><a href="{{ url_for('translator_bp.translate_page_get') }}"
                         class="nav-link {% if request.blueprint == 'translator_bp' %}active{% endif %}">PENERJEMAH</a>
                 </li>
+                <li class="nav-item"><a href="{{ url_for('proofreader_bp.proofread_page_get') }}"
+                        class="nav-link {% if request.blueprint == 'proofreader_bp' %}active{% endif %}">KOREKSI</a>
+                </li>
+                <li class="nav-item"><a href="{{ url_for('paraphraser_bp.paraphrase_page_get') }}"
+                        class="nav-link {% if request.blueprint == 'paraphraser_bp' %}active{% endif %}">PARAFRASE</a>
+                </li>
                 <li class="nav-item"><a href="{{ url_for('readability_bp.readability_page_get') }}"
                         class="nav-link {% if request.blueprint == 'readability_bp' %}active{% endif %}">ANALISIS</a>
                 </li>
-                <!-- <li class="nav-item"><a href="{{ url_for('proofreader_bp.proofread_page') }}"
-                        class="nav-link {% if request.blueprint == 'proofreader_bp' %}active{% endif %}">KOREKSI</a>
-                </li> -->
             </ul>
         </div>
     </div>

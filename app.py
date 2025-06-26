@@ -21,6 +21,7 @@ from blueprints.counter_bp import counter_bp
 from blueprints.readability_bp import readability_bp 
 from blueprints.proofreader_bp import proofreader_bp
 from blueprints.api_bp import api_bp
+from blueprints.paraphraser_bp import paraphraser_bp
 
 load_dotenv()
 
@@ -47,7 +48,7 @@ else:
     print("🚨 GAGAL mengimpor 'google.genai'. Fitur Gemini tidak akan berfungsi.")
     app.config['GEMINI_READY'] = False
 
-# Klien Groq ---
+# Klien Groq
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 if GROQ_API_KEY:
     app.config['GROQ_CLIENT'] = groq.Groq(api_key=GROQ_API_KEY)
@@ -68,7 +69,7 @@ else:
     app.config['COHERE_CLIENT'] = None
     print("⚠️ PERINGATAN: COHERE_API_KEY tidak ditemukan.")
     
-# Klien OpenAI ---
+# Klien OpenAI
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 if OPENAI_API_KEY:
     try:
@@ -93,7 +94,9 @@ app.register_blueprint(translator_bp)
 app.register_blueprint(counter_bp)
 app.register_blueprint(readability_bp)
 app.register_blueprint(proofreader_bp)
-app.register_blueprint(api_bp)
+app.register_blueprint(api_bp) 
+app.register_blueprint(paraphraser_bp)
+
 
 if __name__ == '__main__': 
     app.run(debug=True, host='0.0.0.0', port=5000)

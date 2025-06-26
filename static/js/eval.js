@@ -1,8 +1,6 @@
 function addShineEffect(element) {
     const existingShine = element.querySelector('.shine-effect');
-    if (existingShine) {
-        existingShine.remove();
-    }
+    if (existingShine) existingShine.remove();
     
     const shine = document.createElement('div');
     shine.className = 'shine-effect';
@@ -30,7 +28,7 @@ function createEvalPlaceholder(modelName, uniquePrefix) {
 }
 
 function fillEvalPlaceholder(placeholder, modelName, evalData, observer) {
-    addShineEffect(placeholder);
+    addShineEffect(placeholder); 
     placeholder.classList.remove('placeholder');
     
     let contentHTML = '';
@@ -49,8 +47,7 @@ function fillEvalPlaceholder(placeholder, modelName, evalData, observer) {
                     <p class="detail-score-justification">${data.justifikasi || '<em>Tidak ada justifikasi.</em>'}</p>
                 </div>`;
         };
-        
-        const isTranslationEval = evalData.skor_rinci?.relevansi?.justifikasi?.toLowerCase().includes('akurasi makna');
+        const isTranslationEval = !evalData.skor_rinci?.kefasihan;
         
         const detailScoresHTML = isTranslationEval ? `
             ${renderDetailScore('relevansi', evalData.skor_rinci?.relevansi, 'Akurasi Makna')}
@@ -95,7 +92,7 @@ async function getAndRenderEvaluations(arg1, arg2, arg3, arg4, arg5, arg6) {
         endpointUrl = arg2;
         resultsContainer = arg3;
         modelNameToEvaluate = arg4 || '';
-        useGridLayout = false; 
+        useGridLayout = arg5 || false;
     } else {
         const originalText = arg1;
         const summaryText = arg2;
@@ -186,7 +183,7 @@ async function getAndRenderEvaluations(arg1, arg2, arg3, arg4, arg5, arg6) {
             const errorDiv = document.createElement('div');
             errorDiv.className = 'error-text';
             errorDiv.innerHTML = `<strong>Gagal Memuat Evaluasi:</strong> ${error.message}`;
-            placeholderContainer.innerHTML = ''; // Hapus semua placeholder jika fetch gagal total
+            placeholderContainer.innerHTML = '';
             placeholderContainer.appendChild(errorDiv);
         }
     } finally {

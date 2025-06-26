@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+
+{% block title %}Parafrase Teks AI | Smart Text Suite{% endblock %}
+
+{% block head_links %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/paraphraser.css') }}">
+{% endblock %}
+
+{% block body_attributes %}class="page-feature"{% endblock %}
+
+{% block content %}
+<div id="resultsContainer" class="results-container-main">
+    <div class="initial-message">
+        <i class="fa-solid fa-pen-nib"></i>
+        <h2>Variasi parafrase akan muncul di sini</h2>
+        <p>Masukkan teks di bawah, pilih gaya, lalu tekan Ctrl+Enter.</p>
+    </div>
+</div>
+{% endblock %}
+
+{% block input_console %}
+    <textarea name="text_to_paraphrase" id="mainTextarea" rows="1" placeholder="Masukkan kalimat atau paragraf yang ingin diubah...">{{ form_data.text_to_paraphrase }}</textarea>
+    <button type="submit" form="mainFeatureForm" class="btn-submit-console" id="submitBtn" aria-label="Parafrasekan Teks">
+        <i class="fa-solid fa-arrow-up"></i>
+    </button>
+{% endblock %}
+
+{% block sidebar_title %}
+    <h3><i class="fas fa-cogs"></i> Opsi Parafrase</h3>
+{% endblock %}
+
+{% block sidebar_options %}
+<form id="mainFeatureForm" action="{{ url_for('paraphraser_bp.paraphrase_page_post') }}" method="POST">
+    <div class="form-group">
+        <label for="paraphrase_style">Gaya Penulisan Ulang:</label>
+        <select name="paraphrase_style" id="paraphrase_style">
+            <option value="Standar" {% if form_data.paraphrase_style == 'Standar' %}selected{% endif %}>
+                Standar
+            </option>
+            <option value="Formal" {% if form_data.paraphrase_style == 'Formal' %}selected{% endif %}>
+                Formal
+            </option>
+            <option value="Santai" {% if form_data.paraphrase_style == 'Santai' %}selected{% endif %}>
+                Santai / Kasual
+            </option>
+            <option value="Sederhana" {% if form_data.paraphrase_style == 'Sederhana' %}selected{% endif %}>
+                Lebih Sederhana
+            </option>
+        </select>
+        <small class="form-text-muted">Pilih nada dan gaya hasil parafrase.</small>
+    </div>
+</form>
+{% endblock %}
+
+{% block scripts %}
+    <script src="{{ url_for('static', filename='js/paraphraser.js') }}"></script>
+{% endblock %}

@@ -117,7 +117,7 @@ async def judge_with_cohere(prompt, client: cohere.Client):
             None,
             lambda: client.chat(
                 message=prompt,
-                model="command-a-03-2025",
+                model="command-r-plus",
                 preamble="Your sole function is to output a single, valid JSON object that strictly adheres to the user's requested schema. Do not add any text, comments, or markdown formatting.",
                 temperature=0.1
             )
@@ -126,10 +126,7 @@ async def judge_with_cohere(prompt, client: cohere.Client):
         match = re.search(r'\{.*\}', raw_text, re.DOTALL)
         if not match:
             return {"error": f"Cohere Judge Error: Tidak ada objek JSON di dalam respons. Respons: '{raw_text[:200]}...'"}
-        
         json_string = match.group(0)
-        # --- PERBAIKAN DI SINI ---
-        # Menghapus koma di akhir sebelum parsing JSON
         json_string_cleaned = re.sub(r',\s*([\}\]])', r'\1', json_string)
         return json.loads(json_string_cleaned)
     except json.JSONDecodeError as e:
@@ -178,11 +175,13 @@ async def get_all_evaluations_async(input_text, output_text, target_lang, app_co
 
 async def get_all_translation_evaluations_async(original_text, translated_text, source_lang, target_lang, app_config):
     prompt = format_translation_judge_prompt(original_text, translated_text, source_lang, target_lang)
+    
     tasks = []
     model_names_for_ui = []
     google_client = app_config.get('GEMINI_CLIENT')
     cohere_client = app_config.get('COHERE_CLIENT')
     groq_client = app_config.get('GROQ_CLIENT')
+    
     if google_client:
         tasks.append(judge_with_google_model(prompt, google_client, model_path="gemma-3-27b-it"))
         model_names_for_ui.append("Google Gemma 3")
@@ -192,14 +191,20 @@ async def get_all_translation_evaluations_async(original_text, translated_text, 
     if groq_client:
         tasks.append(judge_with_groq(prompt, groq_client))
         model_names_for_ui.append("Meta Llama 4 Maverick")
+        
     if not tasks:
         return {"Error": {"error": "Tidak ada juri AI yang aktif untuk melakukan evaluasi."}}
-    results = await asyncio.gather(*tasks)
-    for result in results:
-        if isinstance(result, dict) and "skor_rinci" in result:
-            details = result["skor_rinci"]
-            required_keys = ["relevansi", "kepadatan", "koherensi", "konsistensi_faktual"]
-            if not all(key in details for key in required_keys):
-                result['error'] = result.get('error', 'Struktur skor rinci tidak sesuai format.')
-    final_evaluations = {model_names_for_ui[i]: result for i, result in enumerate(results)}
+        
+    results = await asyncio.gather(*tasks, return_exceptions=True)
+    
+    final_evaluations = {}
+    for i, result in enumerate(results):
+        model_name = model_names_for_ui[i]
+        if isinstance(result, Exception):
+            final_evaluations[model_name] = {"error": f"Async task failed: {str(result)}"}
+        elif isinstance(result, dict) and "skor_rinci" not in result:
+             final_evaluations[model_name] = {"error": result.get("error", "Format respons tidak valid.")}
+        else:
+            final_evaluations[model_name] = result
+            
     return final_evaluations
