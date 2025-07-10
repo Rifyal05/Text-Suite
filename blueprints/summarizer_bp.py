@@ -100,7 +100,7 @@ def summarize_page_post():
                     return jsonify({"error": error_msg}), 500
                 return jsonify({"result": result_text})
 
-        # Blok logika jika algoritma yang dipilih adalah tradisional (non-AI)
+        # Blok logika jika algoritma yang dipilih adalah ekstraktif
         else:
             # Ambil parameter untuk algoritma tradisional
             num_sentences = int(data.get('num_sentences_summary', 3))
@@ -205,7 +205,7 @@ def summarize_page_get():
     elif not gemini_is_ready and not openai_is_ready:
         default_method = 'textrank'
         
-    # Ambil data dari sesi pengguna untuk mengisi kembali form (meningkatkan UX)
+    # Ambil data dari sesi pengguna untuk mengisi kembali form
     form_data = {
         'original_text': session.get('summarizer_original_text_last_input', ''),
         'num_sentences_summary': session.get('summarizer_num_sentences', 3),

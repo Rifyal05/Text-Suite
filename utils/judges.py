@@ -5,7 +5,11 @@ from google import genai
 import cohere
 from google.genai.types import GenerateContentConfig as GenerationConfig
 
-
+# Blok: Template Prompt untuk Evaluasi Ringkasan
+# Ini adalah template 'perintah' yang akan diberikan kepada AI Juri.
+# Isinya sangat terstruktur, mendefinisikan peran AI, data yang harus dievaluasi (teks asli dan ringkasan),
+# kriteria penilaian yang detail, dan format output JSON yang ketat.
+# Menggunakan template memastikan konsistensi dan keandalan hasil dari AI.
 JUDGE_PROMPT_TEMPLATE = """
 Anda adalah seorang Analis Kualitas AI yang sangat teliti, objektif, dan ahli dalam linguistik. Tugas Anda adalah memberikan evaluasi terstruktur terhadap kualitas sebuah ringkasan teks yang dihasilkan oleh sebuah metode AI.
 **DATA EVALUASI:**
@@ -35,6 +39,10 @@ Berikan output **HANYA** dalam format JSON yang valid tanpa markdown ```json ata
 }}
 """
 
+# Blok: Template Prompt untuk Evaluasi Terjemahan
+# Serupa dengan template sebelumnya, namun ini dikhususkan untuk mengevaluasi kualitas terjemahan.
+# Kriterianya disesuaikan untuk penerjemahan, seperti akurasi makna, kefasihan, dan pelestarian nuansa.
+# Template ini juga memaksakan output JSON yang ketat.
 TRANSLATION_JUDGE_PROMPT_TEMPLATE = """
 Anda adalah seorang ahli linguistik dan penerjemah profesional multibahasa. Tugas Anda adalah mengevaluasi kualitas sebuah terjemahan yang dihasilkan oleh AI secara objektif dan terstruktur.
 
@@ -68,6 +76,9 @@ Berikan output **HANYA** dalam format JSON yang valid tanpa markdown ```json ata
 }}
 """
 
+# Blok: Fungsi Pemformatan Prompt
+# Fungsi-fungsi ini adalah pembantu (helper) sederhana yang mengambil data input
+# dan memasukkannya ke dalam template yang sesuai untuk menciptakan prompt final yang siap dikirim ke AI.
 def format_judge_prompt(input_text, output_text, target_lang):
     return JUDGE_PROMPT_TEMPLATE.format(input_text=input_text, output_text=output_text, target_lang=target_lang)
 
@@ -79,13 +90,14 @@ def format_translation_judge_prompt(original_text, translated_text, source_lang,
         target_lang=target_lang
     )
 
+# Blok: Fungsi Evaluasi dengan Model Google (Gemini/Gemma)
+# Fungsi asinkron ini bertanggung jawab untuk mengirim prompt ke API Google GenAI dan memproses hasilnya.
 async def judge_with_google_model(prompt, client, model_path):
     if not client: return {"error": f"Klien Google tidak siap untuk model {model_path}."}
     raw_text = ""
     try:
-        generation_config = GenerationConfig(
-            response_mime_type="application/json"
-        )
+        # Mencoba meminta output dalam format JSON secara langsung (fitur yang lebih baru).
+        generation_config = GenerationConfig(response_mime_type="application/json")
         response = await client.aio.models.generate_content(
             model=f'models/{model_path}',
             contents=prompt,
@@ -93,6 +105,7 @@ async def judge_with_google_model(prompt, client, model_path):
         )
         raw_text = response.text
     except Exception as e:
+        # Jika model tidak mendukung JSON mode, coba lagi tanpa konfigurasi khusus (fallback).
         if "generation_config" in str(e) or "unsupported" in str(e):
             try:
                 response = await client.aio.models.generate_content(model=f'models/{model_path}', contents=prompt)
@@ -101,6 +114,8 @@ async def judge_with_google_model(prompt, client, model_path):
                 return {"error": f"Google Judge Error (Fallback): {fallback_e}"}
         else:
             return {"error": f"Google Judge Error: {e}"}
+    
+    # Setelah mendapatkan teks mentah, coba ekstrak dan parse JSON-nya.
     try:
         match = re.search(r'\{.*\}', raw_text, re.DOTALL)
         clean_text = match.group(0) if match else raw_text
@@ -108,6 +123,9 @@ async def judge_with_google_model(prompt, client, model_path):
     except Exception as parse_err:
         return {"error": f"Gagal parsing JSON: {parse_err}. Respons: '{raw_text[:200]}...'"}
 
+# Blok: Fungsi Evaluasi dengan Model Cohere
+# Mirip dengan fungsi Google, tapi ini untuk API Cohere.
+# Menggunakan `run_in_executor` karena library Cohere untuk Python belum sepenuhnya asinkron.
 async def judge_with_cohere(prompt, client: cohere.Client):
     if not client: return {"error": "Klien Cohere tidak siap."}
     raw_text = ""
@@ -123,10 +141,12 @@ async def judge_with_cohere(prompt, client: cohere.Client):
             )
         )
         raw_text = response.text.strip()
+        # Mencari objek JSON di dalam respons teks.
         match = re.search(r'\{.*\}', raw_text, re.DOTALL)
         if not match:
             return {"error": f"Cohere Judge Error: Tidak ada objek JSON di dalam respons. Respons: '{raw_text[:200]}...'"}
         json_string = match.group(0)
+        # Membersihkan kemungkinan koma ekstra di akhir JSON yang bisa menyebabkan error parsing.
         json_string_cleaned = re.sub(r',\s*([\}\]])', r'\1', json_string)
         return json.loads(json_string_cleaned)
     except json.JSONDecodeError as e:
@@ -134,6 +154,9 @@ async def judge_with_cohere(prompt, client: cohere.Client):
     except Exception as e:
         return {"error": f"Cohere Judge Error: {e}"}
 
+# Blok: Fungsi Evaluasi dengan Model Groq (Llama)
+# Fungsi ini berinteraksi dengan API Groq, yang dikenal sangat cepat.
+# API Groq mendukung output JSON secara native, menyederhanakan proses.
 async def judge_with_groq(prompt, client):
     if not client: return {"error": "Klien Groq tidak siap."}
     try:
@@ -151,13 +174,18 @@ async def judge_with_groq(prompt, client):
     except Exception as e:
         return {"error": f"Groq Judge Error: {e}"}
 
+# Blok: Orkestrator Evaluasi Ringkasan
+# Fungsi ini adalah "manajer" yang menjalankan semua evaluasi secara paralel.
 async def get_all_evaluations_async(input_text, output_text, target_lang, app_config):
     prompt = format_judge_prompt(input_text, output_text, target_lang)
     tasks = []
     model_names_for_ui = []
+    
+    # Memeriksa klien API mana yang aktif dan menambahkan tugas evaluasi untuk masing-masing.
     google_client = app_config.get('GEMINI_CLIENT')
     cohere_client = app_config.get('COHERE_CLIENT')
     groq_client = app_config.get('GROQ_CLIENT')
+    
     if google_client:
         tasks.append(judge_with_google_model(prompt, google_client, model_path="gemma-3-27b-it"))
         model_names_for_ui.append("Google Gemma 3")
@@ -167,12 +195,19 @@ async def get_all_evaluations_async(input_text, output_text, target_lang, app_co
     if groq_client:
         tasks.append(judge_with_groq(prompt, groq_client))
         model_names_for_ui.append("Meta Llama 4 Maverick")
+        
     if not tasks:
         return {"Error": {"error": "Tidak ada juri AI yang aktif untuk melakukan evaluasi."}}
+    
+    # Menjalankan semua tugas evaluasi secara bersamaan menggunakan asyncio.gather.
     results = await asyncio.gather(*tasks)
+    
+    # Menggabungkan hasil dengan nama modelnya menjadi satu kamus (dictionary) akhir.
     final_evaluations = {model_names_for_ui[i]: result for i, result in enumerate(results)}
     return final_evaluations
 
+# Blok: Orkestrator Evaluasi Terjemahan
+# Sama seperti fungsi sebelumnya, tapi ini khusus untuk mengelola evaluasi terjemahan.
 async def get_all_translation_evaluations_async(original_text, translated_text, source_lang, target_lang, app_config):
     prompt = format_translation_judge_prompt(original_text, translated_text, source_lang, target_lang)
     
@@ -195,8 +230,10 @@ async def get_all_translation_evaluations_async(original_text, translated_text, 
     if not tasks:
         return {"Error": {"error": "Tidak ada juri AI yang aktif untuk melakukan evaluasi."}}
         
+    # Menjalankan tugas secara paralel dan menangani kemungkinan exception.
     results = await asyncio.gather(*tasks, return_exceptions=True)
     
+    # Memproses hasil dengan lebih hati-hati, memeriksa apakah ada exception atau format respons yang salah.
     final_evaluations = {}
     for i, result in enumerate(results):
         model_name = model_names_for_ui[i]

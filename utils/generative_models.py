@@ -31,7 +31,7 @@ def call_generative_model_blocking(model_id, prompt, app_config):
     else:
         return None, f"Model blocking '{model_id}' tidak dikenal atau tidak didukung."
 
-def stream_gemini_response(prompt, client, model_path='gemini-2.5-flash-preview-05-20'):
+def stream_gemini_response(prompt, client, model_path='gemini-2.5-flash'):
     if not client:
         yield "event: error\ndata: Klien Google AI tidak siap.\n\n"
         return
