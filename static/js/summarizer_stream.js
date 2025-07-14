@@ -174,6 +174,8 @@ document.addEventListener('DOMContentLoaded', async function() {
         updateUIState(true); // Ubah UI ke status 'processing'.
 
         // Siapkan payload data umum yang akan dikirim ke server.
+        const mainModelAlgo = algoSelect.value;
+        const comparisonModelAlgo = comparisonAlgoSelect.value;
         const commonPayload = {
             original_text: originalText,
             num_sentences_summary: document.getElementById('num_sentences_summary').value,
@@ -202,7 +204,7 @@ document.addEventListener('DOMContentLoaded', async function() {
             mainModelData = await processSingleModel(mainModelAlgo, originalText, commonPayload);
             // Jika ada model perbandingan yang dipilih, proses juga model tersebut.
             if (comparisonModelAlgo !== 'none') {
-                comparisonModelData = await processSingleModel(comparisonAlgoSelect.value, originalText, commonPayload);
+                comparisonModelData = await processSingleModel(comparisonModelAlgo, originalText, commonPayload);
             }
         } catch (error) {
             console.error("Terjadi kesalahan pada salah satu proses model:", error.message);
@@ -210,10 +212,12 @@ document.addEventListener('DOMContentLoaded', async function() {
 
         const useGrid = !!comparisonModelData; // Gunakan layout grid jika ada 2 hasil.
 
-        // Jika ada fungsi evaluasi, panggil untuk menampilkan skor perbandingan.
+        // Jika ada fungsi evaluasi, panggil untuk menampilkan skor perbandingan untuk model utama.
         if (mainModelData && typeof getAndRenderEvaluations === 'function') {
             getAndRenderEvaluations(originalText, mainModelData.result, langSelect.value, resultsContainer, useGrid, mainModelData.name);
         }
+
+        // Jika ada fungsi evaluasi dan model pembanding, panggil juga untuk model pembanding.
         if (comparisonModelData && typeof getAndRenderEvaluations === 'function') {
             getAndRenderEvaluations(originalText, comparisonModelData.result, langSelect.value, resultsContainer, useGrid, comparisonModelData.name);
         }
